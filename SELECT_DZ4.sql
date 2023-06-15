@@ -8,9 +8,17 @@ WHERE year >= 2019 AND year <= 2020;
 SELECT round, album.title, album.year FROM (SELECT ROUND(AVG(duration),0), album_id FROM track GROUP BY album_id) AS T
 LEFT JOIN album ON T.album_id = album.album_id;
 
-SELECT nickname FROM musician M LEFT JOIN musicianalbum MA ON M.musician_id = MA.musician_id
-LEFT JOIN album A ON MA.album_id = A.album_id 
-WHERE year != 2020 GROUP BY nickname;
+
+SELECT nickname
+FROM musician
+WHERE nickname NOT IN ( 
+    SELECT nickname 
+    FROM musician M
+    JOIN musicianalbum MA ON M.musician_id = MA.musician_id 
+    JOIN album A ON MA.album_id = A.album_id 
+    WHERE year = 2020 
+);
+
 
 SELECT c.name FROM collection C LEFT JOIN trackcollection t ON C.collection_id = t.collection_id 
 LEFT JOIN track t2 ON t.track_id = t2.track_id 
@@ -20,12 +28,13 @@ LEFT JOIN musician m2 ON m.musician_id = m2.musician_id
 WHERE m2.nickname LIKE 'Баста' 
 GROUP BY c.name;
 
-SELECT title FROM album a LEFT JOIN musicianalbum m ON a.album_id = m.album_id 
-LEFT JOIN musician m2 ON m.musician_id = m2.musician_id 
-LEFT JOIN musiciangenre m3 ON m2.musician_id = m3.musician_id 
-LEFT JOIN genre g ON m3.genre_id =g.genre_id
-GROUP BY title 
-HAVING  COUNT (DISTINCT name) > 1;
+SELECT DISTINCT title 
+FROM album a 
+JOIN musicianalbum m ON a.album_id = m.album_id
+JOIN musician m2 ON m.musician_id = m2.musician_id 
+JOIN musiciangenre m3 ON m2.musician_id = m3.musician_id 
+GROUP BY title, m3.musician_id 
+HAVING COUNT(m3.genre_id) > 1; 
 
 SELECT t_name, name FROM track t LEFT JOIN trackcollection t2 ON t.track_id = t2.track_id 
 LEFT JOIN collection c ON t2.collection_id = c.collection_id
